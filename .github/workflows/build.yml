@@ -183,6 +183,39 @@ jobs:
           name: "tic80-mingw"
           path: build/bin/tic80.exe
 
+  # === Legacy Linux PRO ===
+  legacy-linux-pro:
+    # adds support for linux versions without GLIBC 2.29
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.6
+
+      - name: Install
+        run: |
+          sudo apt-get update
+          sudo apt-get install libglu1-mesa-dev libasound2-dev libpulse-dev libaudio-dev libsamplerate0-dev -y
+
+      - name: Build
+        run: |
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_SDLGPU=On -DBUILD_PRO=On ..
+          cmake --build . --config $BUILD_TYPE --parallel
+          cpack
+
+      - name: Deploy ZIP
+        uses: actions/upload-artifact@v3
+        with:
+          name: "tic80-legacy-linux-pro"
+          path: build/bin/tic80
+
   # === Ubuntu PRO ===
   linux-pro:
     runs-on: ubuntu-20.04
@@ -817,22 +850,3 @@ jobs:
             tic80-rpi-stub
             tic80-macos-stub
             tic80-html-stub
-
-  # === Delete PRO artifacts ===
-#   delete-pro:
-#     needs: [winxp-pro, windows-pro, linux-pro, macos-pro, rpi-pro]
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Delete artifacts
-#         uses: geekyeggo/delete-artifact@v2
-#         with:
-#           name: |
-#             tic80-macos-pro
-#             tic80-macos-dmg-pro
-#             tic80-winxp-pro
-#             tic80-windows-pro
-#             tic80-linux-deb-pro
-#             tic80-linux-pro
-#             tic80-rpi-deb-pro
-#             tic80-rpi-pro
